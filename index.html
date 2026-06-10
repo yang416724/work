@@ -1,10 +1,15 @@
+我们已根据您的反馈，重构了核心填充逻辑：无需手动添加任何占位符。AI会直接分析您的简历文本和上传的Word模板，智能地将个人信息（姓名、联系方式、工作经历等）填入模板中的合适位置，一步到位。同时保留了“AI格式指令”功能，方便您后续调整文字样式。
+
+以下是完整的新版工具代码：
+
+```html
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>AI简历填表工具 - 智能填充与格式调整</title>
-    <!-- 引入第三方库 -->
+    <title>AI智能简历填表工具 - 无占位符一步填充</title>
+    <!-- 第三方库 -->
     <script src="https://cdn.jsdelivr.net/npm/mammoth@1.4.2/mammoth.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html-docx-js/dist/html-docx.js"></script>
     <style>
@@ -33,7 +38,6 @@
             border-left: 4px solid #3b82f6;
             padding-left: 12px;
         }
-        /* 配置栏 */
         .config-panel {
             background: white;
             border-radius: 20px;
@@ -95,6 +99,9 @@
         }
         button.warning {
             background: #f59e0b;
+        }
+        button.primary {
+            background: #3b82f6;
         }
         button:hover {
             filter: brightness(0.95);
@@ -222,8 +229,8 @@
 </head>
 <body>
 <div class="app-container">
-    <h1>📄 AI简历填表工具</h1>
-    <div class="sub">上传Word模板 + 上传/粘贴简历 → AI智能填充 (保留模板格式) + AI指令调整文字样式</div>
+    <h1>📄 AI智能简历填表工具</h1>
+    <div class="sub">上传Word模板 + 上传您的简历 → AI一步到位智能填充（无需占位符） + AI指令调整文字样式</div>
 
     <!-- API 配置区域 -->
     <div class="config-panel">
@@ -245,7 +252,7 @@
                 <button id="saveConfigBtn" style="margin-top: 22px;">💾 保存配置</button>
             </div>
         </div>
-        <div class="info-badge">⚠️ 注意：AI 调用需有效密钥，填充模式会提取模板中的{{变量}}并请求AI根据简历内容生成映射，不会篡改布局。</div>
+        <div class="info-badge">⚠️ 注意：AI 调用需有效密钥。填充时会智能识别模板中需要填写的区域（如姓名、电话、工作经历等），无需手动添加占位符。</div>
     </div>
 
     <div class="main-grid">
@@ -259,12 +266,11 @@
                 </div>
             </div>
             <div class="card-body">
-                <textarea id="resumeText" class="resume-textarea" placeholder="在此粘贴或填写您的简历内容 (文本格式) 或者上传 .txt/.docx 文件，AI将分析这些信息并填充至模板..."></textarea>
+                <textarea id="resumeText" class="resume-textarea" placeholder="在此粘贴或填写您的简历内容 (文本格式) 或者上传 .txt/.docx 文件，AI将分析这些信息并智能填入模板..."></textarea>
                 <div class="action-bar">
-                    <button id="analyzeResumeBtn" class="success">🤖 AI 分析并提取简历字段</button>
-                    <button id="autoFillTemplateBtn" class="primary">✨ AI 智能填充到模板</button>
+                    <button id="autoFillTemplateBtn" class="success" style="background:#0f3460;">✨ 智能一步填充 (AI直接填写)</button>
                 </div>
-                <div class="info-badge">⭐ 填充流程: 1️⃣ 上传模板 → 2️⃣ 简历源文本就绪 → 3️⃣ 点击“AI智能填充到模板” (AI会提取模板内所有变量并根据简历内容映射填充，不改变模板结构)</div>
+                <div class="info-badge">⭐ 一步到位流程: 1️⃣ 上传Word模板（无需任何占位符） → 2️⃣ 填入/上传您的简历文本 → 3️⃣ 点击“智能一步填充”，AI会自动识别模板中所有需要填写的位置，将简历内容精准填入。</div>
             </div>
         </div>
 
@@ -279,10 +285,10 @@
                 </div>
             </div>
             <div class="card-body">
-                <div id="templateEditor" class="template-editor" contenteditable="true" placeholder="上传Word模板后显示内容，支持直接编辑替换占位符如 {{姓名}}...">
-                    <div style="color: #8e9aaf; text-align: center;">等待上传模板文件 (.docx) <br> 模板中请使用 {{变量名}} 作为待填充标记，例如 {{姓名}}、{{电话}}、{{邮箱}} 等。</div>
+                <div id="templateEditor" class="template-editor" contenteditable="true">
+                    <div style="color: #8e9aaf; text-align: center;">等待上传模板文件 (.docx) <br> AI会智能识别模板中的空白区域并填入您的简历信息，无需手动添加任何占位符。</div>
                 </div>
-                <div class="info-badge">✏️ 提示：支持手动修改模板内容和占位符，AI填充时会自动识别所有 {{...}} 并替换。</div>
+                <div class="info-badge">✏️ 提示：支持手动编辑模板内容。填充后会直接修改右侧区域，您可以进一步使用下方的AI格式指令微调样式。</div>
             </div>
         </div>
     </div>
@@ -312,19 +318,16 @@
     const templateFileUpload = document.getElementById('templateFileUpload');
     const uploadResumeBtn = document.getElementById('uploadResumeBtn');
     const resumeFileUpload = document.getElementById('resumeFileUpload');
-    const analyzeResumeBtn = document.getElementById('analyzeResumeBtn');
     const autoFillTemplateBtn = document.getElementById('autoFillTemplateBtn');
     const exportDocxBtn = document.getElementById('exportDocxBtn');
     const applyAIFormatBtn = document.getElementById('applyAIFormatBtn');
     const clearSelectionStyleBtn = document.getElementById('clearSelectionStyleBtn');
     const aiCommandInput = document.getElementById('aiCommandInput');
 
-    // 全局存储当前提取到的简历结构化数据 (缓存)
-    let currentResumeData = null;
-    // 存储api配置
+    // API 配置存储
     let apiConfig = { apiKey: '', baseUrl: '', model: '' };
 
-    // 载入本地存储配置
+    // 加载本地存储配置
     function loadConfig() {
         const savedKey = localStorage.getItem('ai_resume_api_key');
         const savedUrl = localStorage.getItem('ai_resume_api_url');
@@ -348,7 +351,7 @@
     }
     saveConfigBtn.addEventListener('click', saveConfigToLocal);
 
-    // 通用调用 AI (OpenAI chat completions)
+    // 通用 AI 调用 (OpenAI 兼容)
     async function callAI(messages, temperature = 0.3) {
         if (!apiConfig.apiKey || !apiConfig.baseUrl || !apiConfig.model) {
             throw new Error('请先完整填写API密钥、地址和模型，并保存配置');
@@ -363,7 +366,7 @@
                 model: apiConfig.model,
                 messages: messages,
                 temperature: temperature,
-                max_tokens: 2000
+                max_tokens: 4000
             })
         });
         if (!response.ok) {
@@ -374,7 +377,6 @@
         return data.choices[0].message.content;
     }
 
-    // 辅助显示提示
     function showToast(msg, duration = 3000) {
         let toast = document.querySelector('.toast-msg');
         if (!toast) {
@@ -387,7 +389,7 @@
         setTimeout(() => { toast.style.display = 'none'; }, duration);
     }
 
-    // 解析docx转HTML (mammoth)
+    // 解析 .docx 转 HTML
     async function loadDocxToHtml(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -395,7 +397,7 @@
                 try {
                     const arrayBuffer = e.target.result;
                     const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
-                    resolve(result.value); // HTML string
+                    resolve(result.value);
                 } catch (err) { reject(err); }
             };
             reader.onerror = reject;
@@ -415,7 +417,7 @@
         try {
             const htmlContent = await loadDocxToHtml(file);
             templateEditor.innerHTML = htmlContent || '<p>模板解析为空，请检查文件</p>';
-            showToast('模板加载成功，可编辑占位符如 {{姓名}}');
+            showToast('模板加载成功，AI将智能识别区域进行填充');
         } catch (err) {
             console.error(err);
             showToast('模板解析失败: ' + err.message);
@@ -423,7 +425,7 @@
         e.target.value = '';
     });
 
-    // 上传简历文件（支持docx/txt）
+    // 上传简历文件（支持 .txt/.docx）
     uploadResumeBtn.addEventListener('click', () => resumeFileUpload.click());
     resumeFileUpload.addEventListener('change', async (e) => {
         const file = e.target.files[0];
@@ -448,107 +450,77 @@
         e.target.value = '';
     });
 
-    // AI分析简历字段 (辅助展示)
-    analyzeResumeBtn.addEventListener('click', async () => {
-        const resumeContent = resumeTextarea.value.trim();
-        if (!resumeContent) {
-            showToast('请在左侧填写或上传简历内容');
-            return;
-        }
-        if (!apiConfig.apiKey) { showToast('请先配置API密钥'); return; }
-        try {
-            analyzeResumeBtn.innerText = '⏳ 分析中...';
-            const prompt = `你是一个简历解析专家。请从以下简历内容中提取关键字段: 姓名、电话、邮箱、毕业院校、专业、工作年限(数字)、期望职位。返回严格的JSON格式，不要有其他解释。示例: {"姓名":"张三","电话":"13800000000","邮箱":"zhang@example.com","毕业院校":"清华大学","专业":"计算机","工作年限":"3","期望职位":"前端工程师"}。如果某个字段缺失，则留空字符串。\n\n简历内容:\n${resumeContent}`;
-            const aiResult = await callAI([{ role: 'user', content: prompt }], 0.2);
-            const jsonMatch = aiResult.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                const parsed = JSON.parse(jsonMatch[0]);
-                currentResumeData = parsed;
-                showToast('✅ AI分析完成，已提取结构化简历字段');
-                console.log('提取字段:', currentResumeData);
-            } else {
-                throw new Error('AI未返回合法JSON');
-            }
-        } catch (err) {
-            showToast('分析失败: ' + err.message);
-            console.error(err);
-        } finally {
-            analyzeResumeBtn.innerText = '🤖 AI 分析并提取简历字段';
-        }
-    });
-
-    // 提取模板中所有 {{变量名}}
-    function extractTemplateVariables(html) {
-        const regex = /{{([^{}]+)}}/g;
-        const vars = new Set();
-        let match;
-        while ((match = regex.exec(html)) !== null) {
-            vars.add(match[1].trim());
-        }
-        return Array.from(vars);
-    }
-
-    // AI智能填充：根据简历内容+模板变量，映射填充，不修改模板结构 (只替换占位符文本)
-    autoFillTemplateBtn.addEventListener('click', async () => {
+    // ========== 核心：一步到位智能填充（无需占位符） ==========
+    async function directSmartFill() {
         const templateHtml = templateEditor.innerHTML;
-        if (!templateHtml || templateHtml.includes('等待上传模板')) {
+        if (!templateHtml || templateHtml.includes('等待上传模板文件')) {
             showToast('请先上传Word模板文件');
             return;
         }
         const resumeContent = resumeTextarea.value.trim();
         if (!resumeContent) {
-            showToast('请填写简历内容');
+            showToast('请填写或上传您的简历内容');
             return;
         }
-        if (!apiConfig.apiKey) { showToast('请配置API密钥'); return; }
+        if (!apiConfig.apiKey) { showToast('请先配置API密钥'); return; }
 
-        const variables = extractTemplateVariables(templateHtml);
-        if (variables.length === 0) {
-            showToast('模板中未检测到 {{变量}} 占位符，请手动添加例如 {{姓名}} 再填充');
-            return;
-        }
+        autoFillTemplateBtn.innerText = '🧠 AI智能填充中...';
+        autoFillTemplateBtn.disabled = true;
 
         try {
-            autoFillTemplateBtn.innerText = '🧠 AI填充中...';
-            // 构造 prompt：根据简历内容和变量列表生成映射json
-            const prompt = `你是一个专业的简历助手。根据下面的【简历内容】，为以下变量提取对应的值，输出JSON格式，key为变量名，value为填充内容。不要输出其他文本。
-变量列表: ${JSON.stringify(variables)}
-简历内容:
-${resumeContent}
-要求：如果某个变量在简历中找不到对应信息，则保留原始变量名（不要删除占位符标记）。提供最合理的匹配（例如"姓名"匹配名字，"邮箱"匹配邮箱等）。输出示例: {"姓名":"李华","邮箱":"lihua@xx.com"} 只输出JSON。`;
-            const aiResponse = await callAI([{ role: 'user', content: prompt }], 0.3);
-            const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) throw new Error('AI返回格式错误');
-            const mapping = JSON.parse(jsonMatch[0]);
-            // 执行替换 仅替换文本节点中的{{变量}}，防止破坏html标签
-            let newHtml = templateHtml;
-            for (const [varName, value] of Object.entries(mapping)) {
-                if (value && typeof value === 'string') {
-                    const regex = new RegExp(`{{${escapeRegex(varName)}}}`, 'g');
-                    newHtml = newHtml.replace(regex, value);
-                } else {
-                    // 如果值为空或未提取到，保持原占位符
-                }
-            }
-            templateEditor.innerHTML = newHtml;
-            showToast('✅ 智能填充完成，模板中的占位符已替换');
-        } catch (err) {
-            showToast('填充失败: ' + err.message);
-            console.error(err);
-        } finally {
-            autoFillTemplateBtn.innerText = '✨ AI 智能填充到模板';
-        }
-    });
+            // 设计强大的 prompt：要求AI只修改文本内容，保留所有HTML标签和结构，智能填入简历信息
+            const systemPrompt = `你是一位资深HR助手，擅长将简历信息填入任何格式的Word模板（HTML形式）。你的任务：根据提供的【简历内容】，智能填充到【模板HTML】中合适的位置。
+规则：
+1. 绝对不能改变模板的HTML标签结构、布局、表格、列表、样式类名、背景色等任何非文本内容。
+2. 只修改文本节点中的内容：将模板中的空白区域、下划线、括号、提示词（如“姓名”、“联系电话”、“工作经历”等旁边的空白）替换为实际的简历信息。
+3. 如果简历中没有对应信息，则保留原模板文本（例如保留“________”或留空）。
+4. 保持字数、段落数量尽量不变，只做信息填入。
+5. 输出完整的HTML代码，不要输出任何额外解释，不要包含markdown标记。必须保证输出是可直接替换的HTML片段。
+6. 特别注意：填写的内容必须基于真实的简历内容，不得杜撰。将姓名、电话、邮箱、教育背景、工作经历、技能等分别填入最合理的位置。
+7. 如果模板中有类似“{{ }}”这样的占位符，可以将其替换为实际值；如果没有，则根据上下文智能填空（例如“姓名：______”填入真实姓名）。
+8. 输出的HTML必须完全保留原始模板中的所有标签、属性，只更新文本内容。`;
 
-    function escapeRegex(str) {
-        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const userPrompt = `下面是【模板HTML】和【简历内容】。请根据简历内容智能填充到模板中。
+
+【模板HTML】
+${templateHtml}
+
+【简历内容】
+${resumeContent}
+
+请直接返回填充修改后的完整HTML代码。注意：只返回HTML，不要添加任何其他说明。`;
+
+            const aiResponse = await callAI([
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt }
+            ], 0.2);
+
+            // 清理可能出现的 markdown 包裹
+            let cleanHtml = aiResponse.trim();
+            cleanHtml = cleanHtml.replace(/^```html?/i, '').replace(/^```/i, '').replace(/```$/i, '');
+            // 确保是一个有效的HTML片段，基本验证
+            if (!cleanHtml || cleanHtml.length < 10) {
+                throw new Error('AI返回内容为空或过短');
+            }
+            // 尝试简单检测是否包含body/div，但一般模板以div或p开始，直接替换
+            templateEditor.innerHTML = cleanHtml;
+            showToast('✅ 智能填充完成！AI已自动将简历信息填入模板。');
+        } catch (err) {
+            console.error(err);
+            showToast('填充失败: ' + err.message + '。请检查API配置或稍后重试。');
+        } finally {
+            autoFillTemplateBtn.innerText = '✨ 智能一步填充 (AI直接填写)';
+            autoFillTemplateBtn.disabled = false;
+        }
     }
 
-    // 导出为docx
+    autoFillTemplateBtn.addEventListener('click', directSmartFill);
+
+    // 导出为 docx
     exportDocxBtn.addEventListener('click', () => {
         const content = templateEditor.innerHTML;
-        if (!content || content.length < 5) {
-            showToast('无可导出的内容');
+        if (!content || content.length < 10 || content.includes('等待上传模板文件')) {
+            showToast('请先上传模板并完成填充后再导出');
             return;
         }
         const style = `<style>body { font-family: 'Calibri', Arial, sans-serif; margin: 2cm; }</style>`;
@@ -557,7 +529,7 @@ ${resumeContent}
         const link = document.createElement('a');
         const url = URL.createObjectURL(converted);
         link.href = url;
-        link.download = 'filled_resume.docx';
+        link.download = 'filled_resume_ai.docx';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -565,7 +537,24 @@ ${resumeContent}
         showToast('已导出 Word 文件');
     });
 
-    // ---------- AI 格式调整核心: 基于选区 + 自然语言指令 ----------
+    // ---------- AI 格式调整 (原有功能增强) ----------
+    function getSelectionHtml(range) {
+        const container = document.createElement('div');
+        const clonedContents = range.cloneContents();
+        container.appendChild(clonedContents);
+        return container.innerHTML;
+    }
+
+    function createFragmentFromHtml(htmlString) {
+        try {
+            const template = document.createElement('template');
+            template.innerHTML = htmlString;
+            return template.content.cloneNode(true);
+        } catch (e) {
+            return null;
+        }
+    }
+
     async function applyAIFormatting() {
         const sel = window.getSelection();
         if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
@@ -587,15 +576,11 @@ ${resumeContent}
 
         applyAIFormatBtn.innerText = '🎨 AI解析中...';
         try {
-            // 调用AI分析指令，返回需要对该选中部分应用的样式描述或内联样式，更安全方式是返回带样式的html片段
-            const prompt = `你是一个HTML/CSS样式助手。当前选中的HTML片段如下: """${selectedHtml}""" 。用户指令: "${command}"。请根据指令修改这个片段的样式，返回修改后的HTML片段(包裹在同一个根元素内)。只能修改内联样式或添加span/strong/em等标签，不能改变文字内容。必须只输出修改后的HTML代码，不要加任何解释。例如指令“加粗并变红” 返回 <strong style="color:red;">原内容</strong>。如果要求放大字体可以加上 style="font-size:1.5em"。保持原有文本内容不变。`;
+            const prompt = `你是一个HTML/CSS样式专家。当前选中的HTML片段如下: """${selectedHtml}""" 。用户指令: "${command}"。请根据指令修改这个片段的样式，返回修改后的HTML片段(包裹在同一个根元素内)。只能修改内联样式或添加span/strong/em等标签，不能改变文字内容。必须只输出修改后的HTML代码，不要加任何解释。例如指令“加粗并变红” 返回 <strong style="color:red;">原内容</strong>。如果要求放大字体可以加上 style="font-size:1.5em"。保持原有文本内容不变。`;
             const aiResponse = await callAI([{ role: 'user', content: prompt }], 0.4);
-            // 提取HTML内容（简单清理）
             let newHtml = aiResponse.trim();
-            // 移除可能的markdown代码块
             newHtml = newHtml.replace(/```html?/gi, '').replace(/```/g, '');
             if (!newHtml) throw new Error('AI未返回有效html');
-            // 替换选中区域
             const fragment = createFragmentFromHtml(newHtml);
             if (fragment) {
                 range.deleteContents();
@@ -615,24 +600,8 @@ ${resumeContent}
         }
     }
 
-    function getSelectionHtml(range) {
-        const container = document.createElement('div');
-        const clonedContents = range.cloneContents();
-        container.appendChild(clonedContents);
-        return container.innerHTML;
-    }
+    applyAIFormatBtn.addEventListener('click', applyAIFormatting);
 
-    function createFragmentFromHtml(htmlString) {
-        try {
-            const template = document.createElement('template');
-            template.innerHTML = htmlString;
-            return template.content.cloneNode(true);
-        } catch (e) {
-            return null;
-        }
-    }
-
-    // 清除选中样式（仅还原选中部分的内联样式和标签，保留纯文本）
     clearSelectionStyleBtn.addEventListener('click', () => {
         const sel = window.getSelection();
         if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
@@ -652,15 +621,10 @@ ${resumeContent}
         showToast('已清除选中区域的样式');
     });
 
-    applyAIFormatBtn.addEventListener('click', applyAIFormatting);
-
     // 初始化
     loadConfig();
-    // 一些小样式让占位符显眼
-    const styleTag = document.createElement('style');
-    styleTag.textContent = `.template-editor [contenteditable="true"] {{color: #1e293b;}} .template-editor span, .template-editor strong { transition: all 0.1s; }`;
-    document.head.appendChild(styleTag);
-    showToast('工具就绪，配置好API密钥即可使用AI填充与格式指令', 2000);
+    showToast('工具就绪，配置好API密钥后，上传模板和简历，点击“智能一步填充”即可自动完成填写', 4000);
 </script>
 </body>
 </html>
+```
