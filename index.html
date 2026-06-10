@@ -1,9 +1,13 @@
+您遇到的“内容长度超限”和“模板格式错乱”问题，是由于Word模板中包含大量复杂样式代码，导致AI调用时输入token过多，且转换后的HTML结构臃肿。
+
+
+```html
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>AI简历填表工具 - 上下布局 | 智能压缩+长度保护</title>
+    <title>AI简历填表工具 · 强效防超限 · 布局修复版</title>
     <!-- 第三方库 -->
     <script src="https://cdn.jsdelivr.net/npm/mammoth@1.4.2/mammoth.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html-docx-js/dist/html-docx.js"></script>
@@ -211,15 +215,22 @@
             overflow: auto;
             border-radius: 0 0 24px 24px;
         }
+        /* 强化模板显示样式，保证表格边框和基本可读性 */
         .template-editor {
             background: white;
             padding: 24px;
             transition: transform 0.1s ease;
             transform-origin: top left;
             color: #000000 !important;
+            font-family: 'Calibri', 'Segoe UI', Arial, sans-serif;
         }
         .template-editor * {
             color: #000000 !important;
+        }
+        .template-editor table, .template-editor td, .template-editor th {
+            border: 1px solid #aaa;
+            border-collapse: collapse;
+            padding: 6px 8px;
         }
         .template-editor img {
             max-width: 100%;
@@ -266,8 +277,8 @@
 <body>
 <div class="app-container">
     <div class="header">
-        <h1>📄 AI 智能简历填表 · 全模板视图</h1>
-        <div class="sub">上传Word模板 + 简历文本 → AI 一步填充（防超限）| 下方大区域完整预览模板，支持缩放</div>
+        <h1>📄 AI 智能简历填表 · 布局修复 + 防超限引擎</h1>
+        <div class="sub">自动清理模板冗余样式 → AI精准填充 → 保留表格结构，彻底解决长度超限与格式乱码</div>
     </div>
 
     <!-- 配置卡片 -->
@@ -293,7 +304,7 @@
                 <button id="saveConfigBtn" style="width:100%;">💾 保存配置</button>
             </div>
         </div>
-        <div class="info-badge">💡 提示：点击「拉取模型列表」可获取当前API支持的所有模型。模板过长时会自动压缩并提示。</div>
+        <div class="info-badge">💡 模板上传后会自动「清理冗余样式」以减少token并修复布局错乱。若模板仍然超限，请删除Word中的大图片/复杂边框。</div>
     </div>
 
     <!-- 上半部分：简历 + 操作区 -->
@@ -311,6 +322,7 @@
         <div class="action-panel">
             <div style="font-weight:600;">✨ AI 核心操作</div>
             <button id="autoFillTemplateBtn" class="success" style="background:#0f3b5f; font-size:1rem; padding:12px;">🤖 智能一步填充 →</button>
+            <button id="cleanHtmlBtn" class="outline" style="background:#eef2ff;">🧹 清理模板样式 (修复布局/减容)</button>
             <hr>
             <div class="command-group">
                 <label style="font-size:0.8rem; font-weight:500;">🎨 样式指令 (选中模板文字后使用)</label>
@@ -320,14 +332,14 @@
                     <button id="clearSelectionStyleBtn" class="outline">清除选中样式</button>
                 </div>
             </div>
-            <div class="info-badge">👉 用法：在下方面模板区域<strong>选中文本</strong>，输入指令，AI会智能修改样式 (加粗/颜色/大小等)</div>
+            <div class="info-badge">👉 用法：在下方面模板区域<strong>选中文本</strong>，输入指令，AI会智能修改样式</div>
         </div>
     </div>
 
     <!-- 下方：完整的模板编辑区 -->
     <div class="template-section">
         <div class="template-header">
-            <div><strong>🖌️ 简历模板 (Word文件加载，可编辑)</strong> <span class="info-badge" style="margin-left:10px;">👉 支持手动修改，填充后直接显示</span></div>
+            <div><strong>🖌️ 简历模板 (Word文件加载，可编辑)</strong> <span class="info-badge" style="margin-left:10px;">👉 已自动修复边框/错位，支持横向滚动</span></div>
             <div class="zoom-controls">
                 <span>🔍 缩放预览</span>
                 <input type="range" id="zoomSlider" min="40" max="200" step="5" value="100">
@@ -340,7 +352,7 @@
         </div>
         <div class="template-wrapper">
             <div id="templateEditor" class="template-editor" contenteditable="true">
-                <div style="text-align:center; padding:40px; color:#000;">⬆️ 请先点击「上传 .docx 模板」加载您的简历模板文件<br>AI会智能识别空白区域并填入信息，所有文字强制黑色可见。</div>
+                <div style="text-align:center; padding:40px; color:#000;">⬆️ 请先点击「上传 .docx 模板」加载您的简历模板文件<br>AI会自动清理无用样式，保证填充后表格整齐。</div>
             </div>
         </div>
     </div>
@@ -367,6 +379,7 @@
     const zoomSlider = document.getElementById('zoomSlider');
     const zoomValue = document.getElementById('zoomValue');
     const resetZoomBtn = document.getElementById('resetZoomBtn');
+    const cleanHtmlBtn = document.getElementById('cleanHtmlBtn');
 
     let apiConfig = { apiKey: '', baseUrl: '', model: '' };
 
@@ -465,7 +478,7 @@
     }
     fetchModelsBtn.addEventListener('click', fetchModels);
 
-    function showToast(msg, duration = 3500) {
+    function showToast(msg, duration = 4000) {
         let toast = document.querySelector('.toast-msg');
         if (!toast) { toast = document.createElement('div'); toast.className = 'toast-msg'; document.body.appendChild(toast); }
         toast.innerText = msg;
@@ -481,9 +494,9 @@
                     const arrayBuffer = e.target.result;
                     const result = await mammoth.convertToHtml({ arrayBuffer });
                     let html = result.value;
+                    // 移除白色文字样式
                     html = html.replace(/color:\s*white/gi, 'color:black');
                     html = html.replace(/color:\s*#fff/gi, 'color:black');
-                    html = html.replace(/color:\s*#ffffff/gi, 'color:black');
                     resolve(html);
                 } catch (err) { reject(err); }
             };
@@ -492,38 +505,83 @@
         });
     }
 
-    function enforceBlackText() {
+    // 核心清理函数：移除所有class、style、id、data-*等属性，仅保留纯标签+文本+表格基本属性
+    function cleanHtmlAggressive(html) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const root = doc.body;
+        function cleanNode(node) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                // 移除所有属性除了必要的 src/href/colspan/rowspan
+                const attrsToKeep = ['src', 'href', 'colspan', 'rowspan', 'width', 'height', 'align', 'valign'];
+                const attributes = Array.from(node.attributes);
+                for (let attr of attributes) {
+                    if (!attrsToKeep.includes(attr.name)) {
+                        node.removeAttribute(attr.name);
+                    }
+                }
+                // 递归清理子节点
+                for (let child of Array.from(node.childNodes)) {
+                    cleanNode(child);
+                }
+            }
+        }
+        cleanNode(root);
+        // 获取清理后的html字符串
+        let cleaned = root.innerHTML;
+        // 额外去除多余空白
+        cleaned = cleaned.replace(/[\n\t]+/g, ' ').replace(/>\s+</g, '><').trim();
+        return cleaned;
+    }
+
+    // 应用强制表格样式和黑字
+    function applyVisualFix() {
         templateEditor.style.color = '#000000';
         templateEditor.style.backgroundColor = '#ffffff';
         const all = templateEditor.querySelectorAll('*');
         all.forEach(el => { el.style.color = '#000000'; });
+        // 确保表格边框可见
+        const tables = templateEditor.querySelectorAll('table');
+        tables.forEach(t => {
+            t.style.borderCollapse = 'collapse';
+            t.style.width = '100%';
+        });
+        const cells = templateEditor.querySelectorAll('td, th');
+        cells.forEach(c => {
+            c.style.border = '1px solid #888';
+            c.style.padding = '6px 8px';
+        });
     }
 
-    // 压缩HTML：移除多余空白、注释，减小体积
-    function compressHtml(html) {
-        return html.replace(/<!--[\s\S]*?-->/g, '')      // 移除注释
-                   .replace(/\s+/g, ' ')                // 合并空白
-                   .replace(/>\s+</g, '><')             // 去除标签间空白
-                   .trim();
-    }
-
+    // 上传模板并自动清理样式
     uploadTemplateBtn.addEventListener('click', () => templateFileUpload.click());
     templateFileUpload.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file || !file.name.endsWith('.docx')) { showToast('请上传 .docx 文件'); return; }
         try {
-            const html = await loadDocxToHtml(file);
-            templateEditor.innerHTML = html || '<p>模板解析为空</p>';
-            enforceBlackText();
-            const rawLen = templateEditor.innerHTML.length;
-            const compressedLen = compressHtml(templateEditor.innerHTML).length;
-            if (rawLen > 15000) {
-                showToast(`⚠️ 模板内容较大 (${Math.round(rawLen/1000)}k字符)，填充时可能超限，建议简化模板结构。`, 5000);
+            let rawHtml = await loadDocxToHtml(file);
+            // 激进清理样式
+            let cleaned = cleanHtmlAggressive(rawHtml);
+            templateEditor.innerHTML = cleaned || '<p>模板解析为空</p>';
+            applyVisualFix();
+            const charCount = cleaned.length;
+            if (charCount > 12000) {
+                showToast(`⚠️ 模板清理后仍有 ${Math.round(charCount/1000)}k 字符，可能超出AI限制，请尝试简化Word（删除大图/复杂边框）。`, 6000);
             } else {
-                showToast('模板加载成功，下方完整显示');
+                showToast(`模板加载并清理成功，内容大小 ${Math.round(charCount/1000)}k，适合AI填充。`);
             }
         } catch (err) { showToast('模板解析失败: ' + err.message); }
         e.target.value = '';
+    });
+
+    // 手动清理按钮
+    cleanHtmlBtn.addEventListener('click', () => {
+        const current = templateEditor.innerHTML;
+        if (!current || current.includes('请先点击「上传 .docx 模板」')) { showToast('无模板内容可清理'); return; }
+        const cleaned = cleanHtmlAggressive(current);
+        templateEditor.innerHTML = cleaned;
+        applyVisualFix();
+        showToast('已清除冗余样式，布局已修复，字符数减少' + (current.length - cleaned.length) + ' 字符');
     });
 
     uploadResumeBtn.addEventListener('click', () => resumeFileUpload.click());
@@ -545,7 +603,7 @@
         e.target.value = '';
     });
 
-    // 智能填充（防超限：先压缩模板，若仍超过阈值则报错提示）
+    // 智能填充（使用清理后的干净模板）
     async function smartFill() {
         let templateHtml = templateEditor.innerHTML;
         if (!templateHtml || templateHtml.includes('请先点击「上传 .docx 模板」')) {
@@ -556,42 +614,39 @@
         if (!resumeContent) { showToast('请在左侧填写简历内容'); return; }
         if (!apiConfig.apiKey) { showToast('请配置并保存API密钥'); return; }
 
-        // 压缩模板以减少token
-        let compressed = compressHtml(templateHtml);
-        // 极端情况仍然超长则给出明确错误
-        const MAX_INPUT_CHARS = 14000; // 安全阈值
-        if (compressed.length > MAX_INPUT_CHARS) {
-            showToast(`❌ 模板内容过大 (压缩后仍有 ${compressed.length} 字符)，超过AI处理限制。请简化Word模板（删除大段无用的样式/图片/复杂表格）后重试。`, 6000);
+        // 再次清理确保最小
+        let cleanTemplate = cleanHtmlAggressive(templateHtml);
+        const MAX_SAFE = 13000;
+        if (cleanTemplate.length > MAX_SAFE) {
+            showToast(`❌ 模板清理后仍有 ${cleanTemplate.length} 字符，超过AI处理限制。请手动删除Word中的大段无意义文字/图片/重复表格后重新上传。`, 7000);
             return;
         }
 
         autoFillTemplateBtn.innerText = '⏳ AI填充中...';
         autoFillTemplateBtn.disabled = true;
         try {
-            const systemPrompt = `你是一位资深HR助手，任务是根据【简历内容】智能填充到【模板HTML】中，不改变HTML结构、布局、标签，只更新文本节点。
-规则：
-1. 绝对不能修改任何标签、class、表格结构，不能删除内容。
-2. 智能识别模板中预留的位置（如下划线、括号、空白、字段名后等）填入真实简历信息。
-3. 填充基于真实内容，不要杜撰。保持黑色字体。
-4. 返回完整的HTML代码，且所有文字必须为黑色。
-5. 输出只包含HTML，无任何解释。`;
-            const userPrompt = `【模板HTML】\n${compressed}\n\n【简历内容】\n${resumeContent}\n\n请返回填充后的完整HTML代码。`;
+            const systemPrompt = `你是简历填充专家。根据【简历内容】填充到【模板HTML】的文本节点中。要求：
+- 绝对不修改标签结构，不移动表格。
+- 只替换文本内容（空白区域、下划线、括号等）。
+- 返回完整HTML，不要任何解释。
+- 所有文字保留黑色。`;
+            const userPrompt = `【模板HTML】\n${cleanTemplate}\n\n【简历内容】\n${resumeContent}\n\n返回填充后的HTML代码。`;
             const aiResponse = await callAI([
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: userPrompt }
-            ], 0.25, 5000);
+            ], 0.25, 4500);
             let clean = aiResponse.trim();
             clean = clean.replace(/^```html?/i, '').replace(/```$/, '').replace(/^```/, '');
             if (!clean) throw new Error('AI返回空内容');
             templateEditor.innerHTML = clean;
-            enforceBlackText();
-            showToast('✅ 智能填充完成，简历已填入模板');
+            applyVisualFix();
+            showToast('✅ 智能填充完成，简历已填入模板，布局完整');
         } catch (err) {
-            let errMsg = err.message;
-            if (errMsg.includes('maximum context length') || errMsg.includes('length exceeds')) {
-                showToast('❌ 模板内容仍然超过模型上下文限制，请尝试简化Word模板（减少文字、删除多余图片/表格）后重试。', 7000);
+            let msg = err.message;
+            if (msg.includes('maximum context') || msg.includes('length exceeds')) {
+                showToast('❌ 模板仍超模型长度限制，请继续简化模板 (删除图片/大段装饰文字) 后重试。', 7000);
             } else {
-                showToast('填充失败: ' + errMsg);
+                showToast('填充失败: ' + msg);
             }
         } finally {
             autoFillTemplateBtn.innerText = '🤖 智能一步填充 →';
@@ -606,7 +661,7 @@
             showToast('请先上传模板并确保内容非空');
             return;
         }
-        const style = `<style>body { font-family: 'Calibri', Arial, sans-serif; margin: 2cm; color: #000; }</style>`;
+        const style = `<style>body { font-family: 'Calibri', Arial, sans-serif; margin: 2cm; color: #000; } table, td, th { border: 1px solid #aaa; border-collapse: collapse; padding: 6px; }</style>`;
         const full = `<!DOCTYPE html><html><head><meta charset="UTF-8">${style}</head><body>${content}</body></html>`;
         const blob = htmlDocx.asBlob(full);
         const link = document.createElement('a');
@@ -628,7 +683,7 @@
     resetZoomBtn.addEventListener('click', () => { zoomSlider.value = '100'; updateZoom(); });
     updateZoom();
 
-    // AI格式调整
+    // AI格式调整 (不变)
     function getSelectionHtml(range) {
         const div = document.createElement('div');
         div.appendChild(range.cloneContents());
@@ -657,7 +712,7 @@
                 range.insertNode(frag);
                 sel.removeAllRanges();
                 sel.addRange(range);
-                enforceBlackText();
+                applyVisualFix();
                 showToast('格式已应用');
             } else throw new Error('无效HTML');
         } catch (err) { showToast('格式失败: ' + err.message); }
@@ -678,8 +733,9 @@
     });
 
     loadConfig();
-    enforceBlackText();
-    showToast('工具已准备就绪 | 模板过长会自动压缩并警告，请上传简约模板获得最佳效果', 5000);
+    applyVisualFix();
+    showToast('工具已强化：自动清理样式+长度预检+表格边框修复，请上传模板体验。', 5000);
 </script>
 </body>
 </html>
+```
