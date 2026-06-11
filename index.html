@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>AI简历填表工具 · 强效防超限 · 布局修复版</title>
+    <title>AI简历工坊 · 格式保留 | 图片替换 | 导出Word/PDF</title>
     <!-- 第三方库 -->
     <script src="https://cdn.jsdelivr.net/npm/mammoth@1.4.2/mammoth.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html-docx-js/dist/html-docx.js"></script>
+    <!-- html2pdf 可选，但这里使用浏览器打印保存PDF更通用 -->
     <style>
         * {
             box-sizing: border-box;
         }
         body {
             font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            background: #f1f5f9;
+            background: #eef2f8;
             margin: 0;
             padding: 24px;
             color: #0f172a;
@@ -23,11 +24,11 @@
             margin: 0 auto;
         }
         .header {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
         h1 {
             font-size: 1.8rem;
-            margin: 0 0 4px 0;
+            margin: 0;
             color: #0f3b5f;
         }
         .sub {
@@ -36,15 +37,14 @@
             padding-left: 14px;
             margin-top: 6px;
         }
-        .config-card {
+        /* 配置栏 */
+        .config-panel {
             background: white;
-            border-radius: 24px;
-            padding: 20px 24px;
-            margin-bottom: 28px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            border-radius: 20px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
             border: 1px solid #e2e8f0;
-        }
-        .config-row {
             display: flex;
             flex-wrap: wrap;
             gap: 16px;
@@ -52,42 +52,32 @@
         }
         .config-field {
             flex: 1;
-            min-width: 180px;
+            min-width: 160px;
         }
         .config-field label {
-            display: block;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
-            margin-bottom: 6px;
+            display: block;
+            margin-bottom: 4px;
             color: #334155;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         .config-field input, .config-field select {
             width: 100%;
-            padding: 10px 12px;
+            padding: 8px 12px;
+            border-radius: 12px;
             border: 1px solid #cbd5e1;
-            border-radius: 16px;
             font-size: 0.85rem;
-            background: white;
-            transition: 0.2s;
-        }
-        .config-field input:focus, .config-field select:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
         }
         button {
             background: #3b82f6;
             border: none;
             color: white;
-            padding: 10px 20px;
-            border-radius: 40px;
+            padding: 8px 18px;
+            border-radius: 30px;
             font-weight: 500;
             cursor: pointer;
             transition: 0.2s;
-            font-size: 0.85rem;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            font-size: 0.8rem;
         }
         button.secondary {
             background: #475569;
@@ -100,150 +90,91 @@
         button.success {
             background: #10b981;
         }
-        button.primary {
-            background: #0f3b5f;
-        }
-        button:hover {
-            filter: brightness(0.96);
-            transform: translateY(-1px);
-        }
-        .top-section {
+        .flex-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 24px;
-            margin-bottom: 32px;
+            gap: 16px;
+            margin-bottom: 24px;
         }
-        .resume-panel {
-            flex: 1.2;
+        .card {
             background: white;
             border-radius: 24px;
             border: 1px solid #e2e8f0;
             overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            flex: 1;
         }
-        .action-panel {
-            flex: 0.8;
-            background: white;
-            border-radius: 24px;
-            border: 1px solid #e2e8f0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .panel-title {
-            font-weight: 700;
-            padding: 16px 20px;
+        .card-header {
+            padding: 14px 20px;
             background: #f8fafc;
             border-bottom: 1px solid #eef2f6;
-            font-size: 1rem;
-        }
-        .resume-textarea {
-            width: 100%;
-            height: 280px;
-            border: none;
-            padding: 16px 20px;
-            font-family: 'SF Mono', 'Menlo', monospace;
-            font-size: 0.85rem;
-            line-height: 1.5;
-            resize: vertical;
-            background: #fefefe;
-        }
-        .resume-textarea:focus {
-            outline: none;
-        }
-        .file-upload-row {
-            display: flex;
-            gap: 12px;
-            padding: 12px 20px 20px 20px;
-            border-top: 1px solid #edf2f7;
-        }
-        .command-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .command-input {
-            width: 100%;
-            padding: 12px 16px;
-            border-radius: 40px;
-            border: 1px solid #cbd5e1;
-            font-size: 0.85rem;
-        }
-        .button-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: center;
-        }
-        .template-section {
-            background: white;
-            border-radius: 28px;
-            border: 1px solid #e2e8f0;
-            overflow: hidden;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-        }
-        .template-header {
+            font-weight: 700;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 24px;
-            background: #fafcff;
-            border-bottom: 1px solid #eef2f8;
             flex-wrap: wrap;
             gap: 12px;
         }
-        .zoom-controls {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            background: #f1f5f9;
-            padding: 6px 16px;
-            border-radius: 60px;
+        .card-body {
+            padding: 20px;
         }
-        .zoom-controls input {
-            width: 140px;
+        .resume-textarea {
+            width: 100%;
+            height: 260px;
+            border: 1px solid #cbd5e1;
+            border-radius: 16px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            resize: vertical;
         }
         .template-wrapper {
-            padding: 20px;
-            background: #ffffff;
-            max-height: 65vh;
+            max-height: 62vh;
             overflow: auto;
-            border-radius: 0 0 24px 24px;
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            padding: 16px;
         }
-        /* 强化模板显示样式，保证表格边框和基本可读性 */
         .template-editor {
             background: white;
-            padding: 24px;
-            transition: transform 0.1s ease;
-            transform-origin: top left;
-            color: #000000 !important;
             font-family: 'Calibri', 'Segoe UI', Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            transition: transform 0.1s;
+            transform-origin: top left;
         }
-        .template-editor * {
-            color: #000000 !important;
-        }
-        .template-editor table, .template-editor td, .template-editor th {
-            border: 1px solid #aaa;
+        /* 保证表格和图片正常 */
+        .template-editor table {
             border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .template-editor td, .template-editor th {
+            border: 1px solid #aaa;
             padding: 6px 8px;
+            vertical-align: top;
         }
         .template-editor img {
-            max-width: 100%;
-            height: auto;
+            max-width: 120px;
+            max-height: 140px;
+            cursor: pointer;
+            object-fit: contain;
+            border-radius: 8px;
+            transition: 0.1s;
+        }
+        .template-editor img:hover {
+            opacity: 0.8;
+            outline: 2px solid #3b82f6;
+        }
+        .zoom-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
         }
         .info-badge {
             font-size: 0.7rem;
             color: #5b6e8c;
-            margin-top: 8px;
-            display: inline-block;
-        }
-        .warning-badge {
-            background: #fef3c7;
-            color: #92400e;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.7rem;
         }
         .toast-msg {
             position: fixed;
@@ -251,104 +182,82 @@
             right: 20px;
             background: #0f172a;
             color: white;
-            padding: 10px 20px;
-            border-radius: 40px;
+            padding: 8px 16px;
+            border-radius: 30px;
             font-size: 0.8rem;
-            z-index: 1200;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        hr {
-            margin: 8px 0;
-        }
-        @media (max-width: 860px) {
-            .top-section {
-                flex-direction: column;
-            }
-            body {
-                padding: 16px;
-            }
+            z-index: 1100;
         }
     </style>
 </head>
 <body>
 <div class="app-container">
     <div class="header">
-        <h1>📄 AI 智能简历填表 · 布局修复 + 防超限引擎</h1>
-        <div class="sub">自动清理模板冗余样式 → AI精准填充 → 保留表格结构，彻底解决长度超限与格式乱码</div>
+        <h1>📄 AI简历工坊 · 智能填表</h1>
+        <div class="sub">上传模板 → 自动清空示例内容（保留格式/标题/图片占位） → AI填充真实简历 → 可替换图片 → 导出Word/PDF</div>
     </div>
 
-    <!-- 配置卡片 -->
-    <div class="config-card">
-        <div class="config-row">
-            <div class="config-field">
-                <label>🔑 API Key</label>
-                <input type="password" id="apiKey" placeholder="sk-..." value="">
-            </div>
-            <div class="config-field">
-                <label>🌐 Base URL</label>
-                <input type="text" id="apiUrl" placeholder="https://api.openai.com/v1" value="https://api.openai.com/v1">
-            </div>
-            <div class="config-field">
-                <label>🤖 模型</label>
-                <select id="modelSelect">
-                    <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-                </select>
-                <button id="fetchModelsBtn" style="margin-top: 8px; width:100%; background:#334155;">🔄 拉取模型列表</button>
-            </div>
-            <div class="config-field">
-                <label>⚙️ 操作</label>
-                <button id="saveConfigBtn" style="width:100%;">💾 保存配置</button>
-            </div>
+    <!-- API 配置 -->
+    <div class="config-panel">
+        <div class="config-field">
+            <label>API Key</label>
+            <input type="password" id="apiKey" placeholder="sk-...">
         </div>
-        <div class="info-badge">💡 模板上传后会自动「清理冗余样式」以减少token并修复布局错乱。若模板仍然超限，请删除Word中的大图片/复杂边框。</div>
+        <div class="config-field">
+            <label>Base URL</label>
+            <input type="text" id="apiUrl" placeholder="https://api.openai.com/v1" value="https://api.openai.com/v1">
+        </div>
+        <div class="config-field">
+            <label>模型</label>
+            <select id="modelSelect"><option>gpt-3.5-turbo</option></select>
+            <button id="fetchModelsBtn" style="margin-top: 4px; background:#334155; width:100%;">拉取模型</button>
+        </div>
+        <div class="config-field">
+            <button id="saveConfigBtn" style="margin-top: 22px;">💾 保存配置</button>
+        </div>
     </div>
 
-    <!-- 上半部分：简历 + 操作区 -->
-    <div class="top-section">
-        <div class="resume-panel">
-            <div class="panel-title">📄 您的原始简历</div>
-            <textarea id="resumeText" class="resume-textarea" placeholder="粘贴或填写您的简历文本（支持.txt/.docx上传）&#10;例如：&#10;姓名：张三&#10;电话：13812345678&#10;邮箱：zhang@example.com&#10;工作经历：曾任职..."></textarea>
-            <div class="file-upload-row">
-                <input type="file" id="resumeFileUpload" accept=".txt,.docx" style="display:none">
-                <button id="uploadResumeBtn" class="secondary">📂 上传简历文件</button>
-                <div class="info-badge">支持 .txt 或 .docx (自动提取文本)</div>
-            </div>
-        </div>
-
-        <div class="action-panel">
-            <div style="font-weight:600;">✨ AI 核心操作</div>
-            <button id="autoFillTemplateBtn" class="success" style="background:#0f3b5f; font-size:1rem; padding:12px;">🤖 智能一步填充 →</button>
-            <button id="cleanHtmlBtn" class="outline" style="background:#eef2ff;">🧹 清理模板样式 (修复布局/减容)</button>
-            <hr>
-            <div class="command-group">
-                <label style="font-size:0.8rem; font-weight:500;">🎨 样式指令 (选中模板文字后使用)</label>
-                <input type="text" id="aiCommandInput" class="command-input" placeholder="例如: 加粗并变红 / 放大字体 / 设为蓝色">
-                <div class="button-group">
-                    <button id="applyAIFormatBtn" style="background:#8b5cf6;">✨ 执行格式调整</button>
-                    <button id="clearSelectionStyleBtn" class="outline">清除选中样式</button>
+    <!-- 主要两栏 -->
+    <div class="flex-row">
+        <!-- 左侧简历区 -->
+        <div class="card">
+            <div class="card-header">
+                📄 您的简历 (原始文本)
+                <div>
+                    <input type="file" id="resumeFile" accept=".txt,.docx" style="display:none">
+                    <button id="uploadResumeBtn" class="secondary">上传简历文件</button>
                 </div>
             </div>
-            <div class="info-badge">👉 用法：在下方面模板区域<strong>选中文本</strong>，输入指令，AI会智能修改样式</div>
-        </div>
-    </div>
-
-    <!-- 下方：完整的模板编辑区 -->
-    <div class="template-section">
-        <div class="template-header">
-            <div><strong>🖌️ 简历模板 (Word文件加载，可编辑)</strong> <span class="info-badge" style="margin-left:10px;">👉 已自动修复边框/错位，支持横向滚动</span></div>
-            <div class="zoom-controls">
-                <span>🔍 缩放预览</span>
-                <input type="range" id="zoomSlider" min="40" max="200" step="5" value="100">
-                <span id="zoomValue">100%</span>
-                <button id="resetZoomBtn" class="outline" style="padding:4px 12px;">重置</button>
-                <button id="uploadTemplateBtn" style="background:#3b82f6;">📎 上传 .docx 模板</button>
-                <button id="exportDocxBtn" class="secondary">⬇️ 导出 Word</button>
-                <input type="file" id="templateFileUpload" accept=".docx" style="display:none">
+            <div class="card-body">
+                <textarea id="resumeText" class="resume-textarea" placeholder="粘贴或填写您的简历内容（姓名、电话、工作经历等）..."></textarea>
+                <button id="aiFillBtn" class="success" style="margin-top: 16px; width:100%; background:#0f3b5f;">✨ AI 智能填充到模板 (只改文字)</button>
             </div>
         </div>
-        <div class="template-wrapper">
-            <div id="templateEditor" class="template-editor" contenteditable="true">
-                <div style="text-align:center; padding:40px; color:#000;">⬆️ 请先点击「上传 .docx 模板」加载您的简历模板文件<br>AI会自动清理无用样式，保证填充后表格整齐。</div>
+
+        <!-- 右侧模板操作区 -->
+        <div class="card">
+            <div class="card-header">
+                🖌️ 简历模板 (Word上传/编辑)
+                <div style="display: flex; gap: 8px;">
+                    <button id="uploadTemplateBtn">📎 上传 .docx 模板</button>
+                    <button id="clearContentKeepFormatBtn" class="outline">🧹 清空内容留格式</button>
+                    <button id="exportWordBtn" class="secondary">📄 导出 Word</button>
+                    <button id="exportPdfBtn" class="secondary">🖨️ 导出 PDF</button>
+                </div>
+                <input type="file" id="templateFile" accept=".docx" style="display:none">
+            </div>
+            <div class="card-body" style="padding-top: 0;">
+                <div class="zoom-bar">
+                    <span>🔍 缩放</span>
+                    <input type="range" id="zoomSlider" min="50" max="180" value="100" step="5">
+                    <span id="zoomVal">100%</span>
+                    <button id="resetZoom" class="outline" style="padding:2px 12px;">重置</button>
+                    <span class="info-badge">💡 点击图片可替换新图片</span>
+                </div>
+                <div class="template-wrapper">
+                    <div id="templateEditor" class="template-editor" contenteditable="true">
+                        <div style="text-align:center; padding:40px;">⬆️ 上传Word模板，自动清空示例内容并保留格式标题，图片支持点击替换</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -361,44 +270,27 @@
     const modelSelect = document.getElementById('modelSelect');
     const saveConfigBtn = document.getElementById('saveConfigBtn');
     const fetchModelsBtn = document.getElementById('fetchModelsBtn');
-    const resumeTextarea = document.getElementById('resumeText');
+    const resumeText = document.getElementById('resumeText');
     const templateEditor = document.getElementById('templateEditor');
     const uploadTemplateBtn = document.getElementById('uploadTemplateBtn');
-    const templateFileUpload = document.getElementById('templateFileUpload');
+    const templateFile = document.getElementById('templateFile');
     const uploadResumeBtn = document.getElementById('uploadResumeBtn');
-    const resumeFileUpload = document.getElementById('resumeFileUpload');
-    const autoFillTemplateBtn = document.getElementById('autoFillTemplateBtn');
-    const exportDocxBtn = document.getElementById('exportDocxBtn');
-    const applyAIFormatBtn = document.getElementById('applyAIFormatBtn');
-    const clearSelectionStyleBtn = document.getElementById('clearSelectionStyleBtn');
-    const aiCommandInput = document.getElementById('aiCommandInput');
+    const resumeFile = document.getElementById('resumeFile');
+    const aiFillBtn = document.getElementById('aiFillBtn');
+    const exportWordBtn = document.getElementById('exportWordBtn');
+    const exportPdfBtn = document.getElementById('exportPdfBtn');
+    const clearContentKeepFormatBtn = document.getElementById('clearContentKeepFormatBtn');
     const zoomSlider = document.getElementById('zoomSlider');
-    const zoomValue = document.getElementById('zoomValue');
-    const resetZoomBtn = document.getElementById('resetZoomBtn');
-    const cleanHtmlBtn = document.getElementById('cleanHtmlBtn');
+    const zoomVal = document.getElementById('zoomVal');
+    const resetZoom = document.getElementById('resetZoom');
 
     let apiConfig = { apiKey: '', baseUrl: '', model: '' };
 
+    // 加载配置
     function loadConfig() {
-        const savedKey = localStorage.getItem('ai_resume_api_key');
-        const savedUrl = localStorage.getItem('ai_resume_api_url');
-        const savedModel = localStorage.getItem('ai_resume_model');
-        if (savedKey) apiKeyInput.value = savedKey;
-        if (savedUrl) apiUrlInput.value = savedUrl;
-        if (savedModel) {
-            let exists = false;
-            for (let i = 0; i < modelSelect.options.length; i++) {
-                if (modelSelect.options[i].value === savedModel) { exists = true; break; }
-            }
-            if (exists) modelSelect.value = savedModel;
-            else {
-                const opt = document.createElement('option');
-                opt.value = savedModel;
-                opt.text = savedModel;
-                modelSelect.appendChild(opt);
-                modelSelect.value = savedModel;
-            }
-        }
+        apiKeyInput.value = localStorage.getItem('ai_api_key') || '';
+        apiUrlInput.value = localStorage.getItem('ai_api_url') || 'https://api.openai.com/v1';
+        modelSelect.value = localStorage.getItem('ai_model') || 'gpt-3.5-turbo';
         updateConfig();
     }
     function updateConfig() {
@@ -408,330 +300,249 @@
     }
     function saveConfig() {
         updateConfig();
-        localStorage.setItem('ai_resume_api_key', apiConfig.apiKey);
-        localStorage.setItem('ai_resume_api_url', apiConfig.baseUrl);
-        localStorage.setItem('ai_resume_model', apiConfig.model);
-        showToast('✅ API配置已保存');
+        localStorage.setItem('ai_api_key', apiConfig.apiKey);
+        localStorage.setItem('ai_api_url', apiConfig.baseUrl);
+        localStorage.setItem('ai_model', apiConfig.model);
+        showToast('配置已保存');
     }
     saveConfigBtn.addEventListener('click', saveConfig);
 
-    async function callAI(messages, temperature = 0.25, maxTokens = 4000) {
-        if (!apiConfig.apiKey || !apiConfig.baseUrl || !apiConfig.model) {
-            throw new Error('请先填写并保存API密钥、地址和模型');
-        }
-        const response = await fetch(`${apiConfig.baseUrl}/chat/completions`, {
+    async function callAI(messages, temp = 0.25, maxTokens = 3500) {
+        if (!apiConfig.apiKey) throw new Error('请先配置API Key');
+        const res = await fetch(`${apiConfig.baseUrl}/chat/completions`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiConfig.apiKey}`
-            },
-            body: JSON.stringify({
-                model: apiConfig.model,
-                messages: messages,
-                temperature: temperature,
-                max_tokens: maxTokens
-            })
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiConfig.apiKey}` },
+            body: JSON.stringify({ model: apiConfig.model, messages, temperature: temp, max_tokens: maxTokens })
         });
-        if (!response.ok) {
-            const errText = await response.text();
-            throw new Error(`API错误 ${response.status}: ${errText}`);
+        if (!res.ok) {
+            const err = await res.text();
+            throw new Error(`API ${res.status}: ${err}`);
         }
-        const data = await response.json();
+        const data = await res.json();
         return data.choices[0].message.content;
     }
 
     async function fetchModels() {
-        const baseUrl = apiUrlInput.value.trim().replace(/\/$/, '');
-        const apiKey = apiKeyInput.value.trim();
-        if (!baseUrl || !apiKey) { showToast('请填写 API 地址和密钥'); return; }
+        const base = apiUrlInput.value.trim().replace(/\/$/, '');
+        const key = apiKeyInput.value.trim();
+        if (!base || !key) { showToast('请先填写API地址和密钥'); return; }
         fetchModelsBtn.disabled = true;
-        fetchModelsBtn.innerText = '⏳ 拉取中...';
+        fetchModelsBtn.innerText = '拉取中...';
         try {
-            const res = await fetch(`${baseUrl}/models`, { headers: { 'Authorization': `Bearer ${apiKey}` } });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const res = await fetch(`${base}/models`, { headers: { 'Authorization': `Bearer ${key}` } });
+            if (!res.ok) throw new Error('请求失败');
             const data = await res.json();
-            let models = [];
-            if (data.data && Array.isArray(data.data)) models = data.data.map(m => m.id);
-            else if (data.models && Array.isArray(data.models)) models = data.models.map(m => m.id);
-            else throw new Error('未知模型列表格式');
-            if (models.length === 0) throw new Error('无模型');
-            modelSelect.innerHTML = '';
-            models.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m;
-                opt.textContent = m;
-                modelSelect.appendChild(opt);
-            });
-            showToast(`成功获取 ${models.length} 个模型`);
-            updateConfig();
-            localStorage.setItem('ai_resume_model', apiConfig.model);
-        } catch (err) {
-            showToast('拉取失败: ' + err.message);
-        } finally {
-            fetchModelsBtn.disabled = false;
-            fetchModelsBtn.innerText = '🔄 拉取模型列表';
-        }
+            let models = data.data?.map(m=>m.id) || data.models?.map(m=>m.id) || [];
+            if (models.length) {
+                modelSelect.innerHTML = '';
+                models.forEach(m => { let opt = document.createElement('option'); opt.value = m; opt.text = m; modelSelect.appendChild(opt); });
+                showToast(`获取 ${models.length} 个模型`);
+            } else throw new Error('无模型');
+        } catch(e) { showToast('拉取失败: '+e.message); }
+        finally { fetchModelsBtn.disabled = false; fetchModelsBtn.innerText = '拉取模型'; }
     }
     fetchModelsBtn.addEventListener('click', fetchModels);
 
-    function showToast(msg, duration = 4000) {
-        let toast = document.querySelector('.toast-msg');
-        if (!toast) { toast = document.createElement('div'); toast.className = 'toast-msg'; document.body.appendChild(toast); }
-        toast.innerText = msg;
-        toast.style.display = 'block';
-        setTimeout(() => { toast.style.display = 'none'; }, duration);
+    function showToast(msg, dur=3000) {
+        let t = document.querySelector('.toast-msg');
+        if(!t){ t=document.createElement('div'); t.className='toast-msg'; document.body.appendChild(t); }
+        t.innerText = msg; t.style.display='block';
+        setTimeout(()=>t.style.display='none', dur);
     }
 
-    async function loadDocxToHtml(file) {
+    // 解析docx -> html
+    async function docxToHtml(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = async (e) => {
                 try {
-                    const arrayBuffer = e.target.result;
-                    const result = await mammoth.convertToHtml({ arrayBuffer });
-                    let html = result.value;
-                    // 移除白色文字样式
-                    html = html.replace(/color:\s*white/gi, 'color:black');
-                    html = html.replace(/color:\s*#fff/gi, 'color:black');
-                    resolve(html);
-                } catch (err) { reject(err); }
+                    const result = await mammoth.convertToHtml({ arrayBuffer: e.target.result });
+                    resolve(result.value);
+                } catch(err) { reject(err); }
             };
             reader.onerror = reject;
             reader.readAsArrayBuffer(file);
         });
     }
 
-    // 核心清理函数：移除所有class、style、id、data-*等属性，仅保留纯标签+文本+表格基本属性
-    function cleanHtmlAggressive(html) {
+    // 核心：清空内容但保留格式标题（删除示例文本，保留标签和占位符，图片保留但清除src原始大图？保留img但设置为占位？这里为了用户友好，保留img但清空src太粗暴，改为保留图片但用户可替换。只删除文本节点中的示例内容）
+    function clearExampleContentKeepFormat(html) {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
-        const root = doc.body;
-        function cleanNode(node) {
-            if (node.nodeType === Node.ELEMENT_NODE) {
-                // 移除所有属性除了必要的 src/href/colspan/rowspan
-                const attrsToKeep = ['src', 'href', 'colspan', 'rowspan', 'width', 'height', 'align', 'valign'];
-                const attributes = Array.from(node.attributes);
-                for (let attr of attributes) {
-                    if (!attrsToKeep.includes(attr.name)) {
-                        node.removeAttribute(attr.name);
-                    }
-                }
-                // 递归清理子节点
-                for (let child of Array.from(node.childNodes)) {
-                    cleanNode(child);
-                }
+        // 遍历所有文本节点，删除匹配常见示例内容的文本，但保留类似“出生年月：”这样的标签标题
+        const walker = document.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, null, false);
+        const nodesToRemove = [];
+        while(walker.nextNode()) {
+            let node = walker.currentNode;
+            let text = node.nodeValue;
+            // 如果文本包含示例性的假数据、邮箱、电话等，但不是纯粹标签（例如“出生年月：”后面跟“2003.06”则只删除后面的数值）
+            // 更通用: 删除常见占位示例: 输入邮箱@qq.com, 2003.06, 13800000000, 示例文本等
+            let cleaned = text.replace(/[0-9]{4}\.[0-9]{2}/g, '')   // 日期占位
+                              .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '') // 邮箱
+                              .replace(/1[3-9]\d{9}/g, '')          // 手机号
+                              .replace(/输入[^，,。]*/g, '')
+                              .replace(/示例/g, '')
+                              .replace(/测试/g, '');
+            // 如果清理后文本为空或只剩空白，则删除节点；否则更新文本（注意保留冒号后的空位）
+            if(cleaned.trim() === '') {
+                if(node.parentNode && node.parentNode.tagName !== 'BODY') nodesToRemove.push(node);
+            } else if(cleaned !== text) {
+                node.nodeValue = cleaned;
             }
         }
-        cleanNode(root);
-        // 获取清理后的html字符串
-        let cleaned = root.innerHTML;
-        // 额外去除多余空白
-        cleaned = cleaned.replace(/[\n\t]+/g, ' ').replace(/>\s+</g, '><').trim();
-        return cleaned;
+        nodesToRemove.forEach(n => n.parentNode?.removeChild(n));
+        // 额外: 对于图片，保留图片标签，但不清除src，用户可手动替换；如果原图过大，保持比例
+        // 返回html
+        return doc.body.innerHTML;
     }
 
-    // 应用强制表格样式和黑字
-    function applyVisualFix() {
-        templateEditor.style.color = '#000000';
-        templateEditor.style.backgroundColor = '#ffffff';
-        const all = templateEditor.querySelectorAll('*');
-        all.forEach(el => { el.style.color = '#000000'; });
-        // 确保表格边框可见
-        const tables = templateEditor.querySelectorAll('table');
-        tables.forEach(t => {
-            t.style.borderCollapse = 'collapse';
-            t.style.width = '100%';
-        });
-        const cells = templateEditor.querySelectorAll('td, th');
-        cells.forEach(c => {
-            c.style.border = '1px solid #888';
-            c.style.padding = '6px 8px';
-        });
-    }
-
-    // 上传模板并自动清理样式
-    uploadTemplateBtn.addEventListener('click', () => templateFileUpload.click());
-    templateFileUpload.addEventListener('change', async (e) => {
+    // 上传模板并自动清空示例内容
+    uploadTemplateBtn.addEventListener('click', () => templateFile.click());
+    templateFile.addEventListener('change', async (e) => {
         const file = e.target.files[0];
-        if (!file || !file.name.endsWith('.docx')) { showToast('请上传 .docx 文件'); return; }
+        if(!file || !file.name.endsWith('.docx')) { showToast('请上传.docx文件'); return; }
         try {
-            let rawHtml = await loadDocxToHtml(file);
-            // 激进清理样式
-            let cleaned = cleanHtmlAggressive(rawHtml);
-            templateEditor.innerHTML = cleaned || '<p>模板解析为空</p>';
-            applyVisualFix();
-            const charCount = cleaned.length;
-            if (charCount > 12000) {
-                showToast(`⚠️ 模板清理后仍有 ${Math.round(charCount/1000)}k 字符，可能超出AI限制，请尝试简化Word（删除大图/复杂边框）。`, 6000);
-            } else {
-                showToast(`模板加载并清理成功，内容大小 ${Math.round(charCount/1000)}k，适合AI填充。`);
+            let rawHtml = await docxToHtml(file);
+            // 清理示例内容，保留格式
+            let cleanedHtml = clearExampleContentKeepFormat(rawHtml);
+            templateEditor.innerHTML = cleanedHtml || '<p>模板解析后为空</p>';
+            // 绑定图片替换事件
+            bindImageReplace();
+            showToast('模板已加载，示例内容已清空，保留标题和布局，图片可点击替换');
+        } catch(err) { showToast('模板失败: '+err.message); }
+        e.target.value = '';
+    });
+
+    // 手动清空内容按钮
+    clearContentKeepFormatBtn.addEventListener('click', () => {
+        let current = templateEditor.innerHTML;
+        if(!current || current.includes('上传Word模板')) { showToast('请先上传模板'); return; }
+        let cleared = clearExampleContentKeepFormat(current);
+        templateEditor.innerHTML = cleared;
+        bindImageReplace();
+        showToast('已清空示例内容，保留格式标题');
+    });
+
+    // 图片替换功能（点击图片弹出文件选择器，替换src）
+    function bindImageReplace() {
+        const images = templateEditor.querySelectorAll('img');
+        images.forEach(img => {
+            img.style.cursor = 'pointer';
+            img.removeEventListener('click', imageClickHandler);
+            img.addEventListener('click', imageClickHandler);
+        });
+    }
+    function imageClickHandler(e) {
+        e.stopPropagation();
+        const img = e.target;
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (ev) => {
+            const file = ev.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = (re) => { img.src = re.target.result; showToast('图片已替换'); };
+                reader.readAsDataURL(file);
             }
-        } catch (err) { showToast('模板解析失败: ' + err.message); }
-        e.target.value = '';
-    });
+        };
+        input.click();
+    }
 
-    // 手动清理按钮
-    cleanHtmlBtn.addEventListener('click', () => {
-        const current = templateEditor.innerHTML;
-        if (!current || current.includes('请先点击「上传 .docx 模板」')) { showToast('无模板内容可清理'); return; }
-        const cleaned = cleanHtmlAggressive(current);
-        templateEditor.innerHTML = cleaned;
-        applyVisualFix();
-        showToast('已清除冗余样式，布局已修复，字符数减少' + (current.length - cleaned.length) + ' 字符');
-    });
-
-    uploadResumeBtn.addEventListener('click', () => resumeFileUpload.click());
-    resumeFileUpload.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        try {
-            if (file.name.endsWith('.txt')) {
-                const text = await file.text();
-                resumeTextarea.value = text;
-                showToast('简历文本已加载');
-            } else if (file.name.endsWith('.docx')) {
-                const html = await loadDocxToHtml(file);
-                const plainText = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-                resumeTextarea.value = plainText;
-                showToast('已提取Word简历文本');
-            } else { showToast('请上传 .txt 或 .docx'); }
-        } catch (err) { showToast('读取失败'); }
-        e.target.value = '';
-    });
-
-    // 智能填充（使用清理后的干净模板）
-    async function smartFill() {
+    // AI智能填充（只修改文本，不改变结构）
+    async function aiFill() {
         let templateHtml = templateEditor.innerHTML;
-        if (!templateHtml || templateHtml.includes('请先点击「上传 .docx 模板」')) {
-            showToast('请先上传Word模板文件');
-            return;
-        }
-        const resumeContent = resumeTextarea.value.trim();
-        if (!resumeContent) { showToast('请在左侧填写简历内容'); return; }
-        if (!apiConfig.apiKey) { showToast('请配置并保存API密钥'); return; }
+        if(!templateHtml || templateHtml.includes('上传Word模板')) { showToast('请先上传模板'); return; }
+        const resumeContent = resumeText.value.trim();
+        if(!resumeContent) { showToast('请填写简历内容'); return; }
+        if(!apiConfig.apiKey) { showToast('请配置API密钥'); return; }
 
-        // 再次清理确保最小
-        let cleanTemplate = cleanHtmlAggressive(templateHtml);
-        const MAX_SAFE = 13000;
-        if (cleanTemplate.length > MAX_SAFE) {
-            showToast(`❌ 模板清理后仍有 ${cleanTemplate.length} 字符，超过AI处理限制。请手动删除Word中的大段无意义文字/图片/重复表格后重新上传。`, 7000);
-            return;
-        }
-
-        autoFillTemplateBtn.innerText = '⏳ AI填充中...';
-        autoFillTemplateBtn.disabled = true;
+        aiFillBtn.innerText = '⏳ AI填充中...';
+        aiFillBtn.disabled = true;
         try {
-            const systemPrompt = `你是简历填充专家。根据【简历内容】填充到【模板HTML】的文本节点中。要求：
-- 绝对不修改标签结构，不移动表格。
-- 只替换文本内容（空白区域、下划线、括号等）。
-- 返回完整HTML，不要任何解释。
-- 所有文字保留黑色。`;
-            const userPrompt = `【模板HTML】\n${cleanTemplate}\n\n【简历内容】\n${resumeContent}\n\n返回填充后的HTML代码。`;
-            const aiResponse = await callAI([
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt }
-            ], 0.25, 4500);
-            let clean = aiResponse.trim();
-            clean = clean.replace(/^```html?/i, '').replace(/```$/, '').replace(/^```/, '');
-            if (!clean) throw new Error('AI返回空内容');
-            templateEditor.innerHTML = clean;
-            applyVisualFix();
-            showToast('✅ 智能填充完成，简历已填入模板，布局完整');
-        } catch (err) {
-            let msg = err.message;
-            if (msg.includes('maximum context') || msg.includes('length exceeds')) {
-                showToast('❌ 模板仍超模型长度限制，请继续简化模板 (删除图片/大段装饰文字) 后重试。', 7000);
-            } else {
-                showToast('填充失败: ' + msg);
+            // 限制模板长度避免超限，简单截断提示
+            if(templateHtml.length > 12000) {
+                showToast('模板内容过大，请先点击“清空内容留格式”简化文本', 4000);
+                aiFillBtn.disabled = false; aiFillBtn.innerText = '✨ AI 智能填充'; return;
             }
+            const system = `你是一个简历填充助手。请根据【简历内容】修改【模板HTML】中的文本节点，只替换填空位置（如空白、下划线、括号、示例文本等），绝对不改变HTML标签、属性、class、表格结构、图片地址。保持所有格式。只返回完整的HTML代码，不返回任何解释。`;
+            const user = `【模板HTML】\n${templateHtml}\n\n【简历内容】\n${resumeContent}\n\n返回填充后的HTML代码。`;
+            const aiResponse = await callAI([{ role: 'system', content: system }, { role: 'user', content: user }], 0.2, 4000);
+            let cleanHtml = aiResponse.trim();
+            cleanHtml = cleanHtml.replace(/^```html?/i, '').replace(/```$/g, '').replace(/^```/, '');
+            if(cleanHtml) {
+                templateEditor.innerHTML = cleanHtml;
+                bindImageReplace();
+                showToast('✅ AI填充完成，已根据简历更新文字内容');
+            } else throw new Error('AI返回为空');
+        } catch(err) {
+            showToast('填充失败: ' + err.message);
         } finally {
-            autoFillTemplateBtn.innerText = '🤖 智能一步填充 →';
-            autoFillTemplateBtn.disabled = false;
+            aiFillBtn.disabled = false;
+            aiFillBtn.innerText = '✨ AI 智能填充到模板 (只改文字)';
         }
     }
-    autoFillTemplateBtn.addEventListener('click', smartFill);
+    aiFillBtn.addEventListener('click', aiFill);
 
-    exportDocxBtn.addEventListener('click', () => {
-        const content = templateEditor.innerHTML;
-        if (!content || content.includes('请先点击「上传 .docx 模板」')) {
-            showToast('请先上传模板并确保内容非空');
-            return;
-        }
-        const style = `<style>body { font-family: 'Calibri', Arial, sans-serif; margin: 2cm; color: #000; } table, td, th { border: 1px solid #aaa; border-collapse: collapse; padding: 6px; }</style>`;
-        const full = `<!DOCTYPE html><html><head><meta charset="UTF-8">${style}</head><body>${content}</body></html>`;
-        const blob = htmlDocx.asBlob(full);
+    // 导出Word
+    exportWordBtn.addEventListener('click', () => {
+        let content = templateEditor.innerHTML;
+        if(!content || content.includes('上传Word模板')) { showToast('无模板内容可导出'); return; }
+        const style = `<style>body { font-family: Calibri, Arial; margin: 2cm; } table, td, th { border: 1px solid #aaa; border-collapse: collapse; padding: 5px; } img { max-width: 100%; height: auto; }</style>`;
+        const fullHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8">${style}</head><body>${content}</body></html>`;
+        const blob = htmlDocx.asBlob(fullHtml);
         const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.download = 'filled_resume.docx';
+        link.href = URL.createObjectURL(blob);
+        link.download = 'resume_filled.docx';
         link.click();
-        URL.revokeObjectURL(url);
-        showToast('导出成功');
+        URL.revokeObjectURL(link.href);
+        showToast('导出Word成功');
+    });
+
+    // 导出PDF (使用浏览器打印)
+    exportPdfBtn.addEventListener('click', () => {
+        const originalTitle = document.title;
+        const printWindow = window.open('', '_blank');
+        let content = templateEditor.innerHTML;
+        if(!content || content.includes('上传Word模板')) { showToast('无内容可打印'); return; }
+        const style = `<style>body { font-family: 'Calibri', Arial; margin: 2cm; padding: 0; } table, td, th { border: 1px solid #333; border-collapse: collapse; padding: 5px; } img { max-width: 100%; height: auto; }</style>`;
+        printWindow.document.write(`<!DOCTYPE html><html><head><title>简历导出</title>${style}</head><body>${content}</body></html>`);
+        printWindow.document.close();
+        printWindow.print();
+        showToast('请在打印窗口选择“另存为PDF”');
     });
 
     // 缩放
-    function updateZoom() {
-        const percent = zoomSlider.value;
-        templateEditor.style.transform = `scale(${percent / 100})`;
-        zoomValue.innerText = percent + '%';
+    function setZoom(val) {
+        const percent = val / 100;
+        templateEditor.style.transform = `scale(${percent})`;
+        zoomVal.innerText = val + '%';
     }
-    zoomSlider.addEventListener('input', updateZoom);
-    resetZoomBtn.addEventListener('click', () => { zoomSlider.value = '100'; updateZoom(); });
-    updateZoom();
+    zoomSlider.addEventListener('input', (e) => setZoom(parseInt(e.target.value)));
+    resetZoom.addEventListener('click', () => { zoomSlider.value = '100'; setZoom(100); });
+    setZoom(100);
 
-    // AI格式调整 (不变)
-    function getSelectionHtml(range) {
-        const div = document.createElement('div');
-        div.appendChild(range.cloneContents());
-        return div.innerHTML;
-    }
-    function createFragment(html) {
-        try { const t = document.createElement('template'); t.innerHTML = html; return t.content.cloneNode(true); } catch(e) { return null; }
-    }
-    async function applyFormat() {
-        const sel = window.getSelection();
-        if (!sel || sel.isCollapsed || sel.rangeCount === 0) { showToast('请先在下方模板区选中文字'); return; }
-        const range = sel.getRangeAt(0);
-        const selectedHtml = getSelectionHtml(range);
-        if (!selectedHtml.trim()) { showToast('选中内容为空'); return; }
-        const cmd = aiCommandInput.value.trim();
-        if (!cmd) { showToast('请输入格式指令'); return; }
-        if (!apiConfig.apiKey) { showToast('请保存API配置'); return; }
-        applyAIFormatBtn.innerText = '🎨 处理中...';
+    // 上传简历文本
+    uploadResumeBtn.addEventListener('click', () => resumeFile.click());
+    resumeFile.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
         try {
-            const prompt = `选中的HTML片段: """${selectedHtml}""" 。用户指令: "${cmd}"。返回修改样式后的HTML片段，只修改内联样式或增加span/strong，不能改变文字。只输出HTML。`;
-            const aiRes = await callAI([{ role: 'user', content: prompt }], 0.3);
-            let newHtml = aiRes.trim().replace(/```html?/g, '').replace(/```/g, '');
-            const frag = createFragment(newHtml);
-            if (frag) {
-                range.deleteContents();
-                range.insertNode(frag);
-                sel.removeAllRanges();
-                sel.addRange(range);
-                applyVisualFix();
-                showToast('格式已应用');
-            } else throw new Error('无效HTML');
-        } catch (err) { showToast('格式失败: ' + err.message); }
-        finally { applyAIFormatBtn.innerText = '✨ 执行格式调整'; }
-    }
-    applyAIFormatBtn.addEventListener('click', applyFormat);
-    clearSelectionStyleBtn.addEventListener('click', () => {
-        const sel = window.getSelection();
-        if (!sel || sel.isCollapsed) { showToast('请先选中文本'); return; }
-        const range = sel.getRangeAt(0);
-        const text = range.toString();
-        if (!text) return;
-        range.deleteContents();
-        range.insertNode(document.createTextNode(text));
-        sel.removeAllRanges();
-        sel.addRange(range);
-        showToast('已清除样式');
+            if(file.name.endsWith('.txt')) {
+                resumeText.value = await file.text();
+            } else if(file.name.endsWith('.docx')) {
+                const html = await docxToHtml(file);
+                const plain = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                resumeText.value = plain;
+            } else { showToast('仅支持 .txt/.docx'); }
+            showToast('简历已载入');
+        } catch(err) { showToast('读取失败'); }
+        e.target.value = '';
     });
 
+    // 初始化
     loadConfig();
-    applyVisualFix();
-    showToast('工具已强化：自动清理样式+长度预检+表格边框修复，请上传模板体验。', 5000);
+    showToast('工具已启动 | 上传Word模板会自动清空示例文字，保留标题布局；点击图片可替换', 5000);
 </script>
 </body>
 </html>
-```
